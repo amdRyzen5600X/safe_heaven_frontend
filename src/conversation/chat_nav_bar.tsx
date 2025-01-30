@@ -1,22 +1,16 @@
 import { Accessor, For } from "solid-js";
-import { Chat } from ".";
+import ChatComponent, { Chat } from "../components/chat";
 
 
 
-const ChatNavBar = (props: {chats: Accessor<Chat[]>; select_chat: (id: string | undefined) => void} ) => {
+const ChatNavBar = (props: { chats: Accessor<Chat[]>; select_chat: (id: string | undefined) => void }) => {
     return (
-        <div class="w-1/4 bg-gray-800 p-4">
+        <div class="w-1/4 bg-gray-800 p-4 flex-grow flex h-full overflow-auto flex-col">
             <h1 class="text-2xl font-bold mb-4">Chats</h1>
-            <div class="space-y-2">
+            <div class="space-y-2 w-full overflow-auto">
                 <For each={props.chats()}>
                     {(chat) => (
-                        <div
-                            class="p-4 bg-gray-700 rounded-lg shadow-md cursor-pointer hover:bg-gray-600 transition-colors duration-200"
-                            onClick={() => props.select_chat(chat.id)}
-                        >
-                            <h2 class="text-lg font-semibold">{chat.name}</h2>
-                            <p class="text-sm text-gray-300">{chat.lastMessage}</p>
-                        </div>
+                        <ChatComponent chat={chat} select_chat={props.select_chat} />
                     )}
                 </For>
             </div>

@@ -1,27 +1,26 @@
 import { Show, For, Accessor, Setter } from "solid-js";
+import MessageComponent from "../components/message";
 
 const ChatConversationComponent = (props: { selectedChat: Accessor<string | null>, selectedChatMessages: Accessor<string[]>, message: Accessor<string>, setMessage: Setter<string>, handleSendMessage: () => void }) => {
     return (
-        <div class="flex-1 bg-gray-900 p-4">
+        <div class="bg-gray-900 p-4 w-3/4 flex flex-col">
             <Show when={!!props.selectedChat()} fallback={
                 <div>
                     <h1 class="text-2xl font-bold mb-4">Welcome to Messenger</h1>
                     <p class="text-gray-400">Select a chat to start messaging.</p>
                 </div>
             }>
-                <div>
+                <div class="w-full flex h-full overflow-auto flex-col">
                     <h1 class="text-2xl font-bold mb-4">Chat {props.selectedChat()}</h1>
-                    <div class="space-y-2">
+                    <div class="space-y-2 w-full overflow-auto">
                         <For each={props.selectedChatMessages()}>
                             {(message) => (
-                                <div class="p-4 bg-gray-800 rounded-lg shadow-md">
-                                    <p class="text-gray-300">{message}</p>
-                                </div>
+                                <MessageComponent message={message} />
                             )}
                         </For>
                     </div>
                 </div>
-                <div class="fixed bottom-0 left-0 right-0 p-4 bg-gray-800 mt-auto">
+                <div class="sticky bottom-0 w-full p-4 bg-gray-800">
                     <form class="flex items-center space-x-2"
                         onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); props.handleSendMessage(); }}
                     >
