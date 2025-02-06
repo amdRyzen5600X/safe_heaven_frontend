@@ -1,66 +1,55 @@
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { useSearchParams } from "@solidjs/router";
 import ChatNavBar from "./chat_nav_bar";
 import ChatConversationComponent from "./chat_conversation";
-
-export interface Chat {
-    id: string,
-    name: string,
-    lastMessage: string,
-    messages: string[],
-}
+import { getJwtFromCookies } from "../utils";
+import { Chat, Message } from "../components/chat";
 
 const Conversation = () => {
     const [params, setParams] = useSearchParams();
-    const [chats, setChats] = createSignal([
-        { id: "1", name: "Chat 1", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "2", name: "Chat 2", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "3", name: "Chat 3", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-        { id: "4", name: "Chat 4", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "5", name: "Chat 5", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "6", name: "Chat 6", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "7", name: "Chat 7", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "8", name: "Chat 8", lastMessage: "Hello there!", messages: ["Hi!", "How are you?", "I'm good, thanks!"] },
-        { id: "9", name: "Chat 9", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "10", name: "Chat 10", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-        { id: "11", name: "Chat 11", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "12", name: "Chat 12", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-        { id: "13", name: "Chat 13", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "14", name: "Chat 14", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-        { id: "15", name: "Chat 15", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "16", name: "Chat 16", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-        { id: "17", name: "Chat 17", lastMessage: "How are you?", messages: ["Hey!", "What's up?", "Not much, just chilling."] },
-        { id: "18", name: "Chat 18", lastMessage: "See you later!", messages: ["Bye!", "See you!", "Take care!"] },
-    ]);
+    const [chats, setChats] = createSignal<Chat[]>([]);
 
-    const [message, setMessage] = createSignal("");
-    const [selectedChat, setSelectedChat] = createSignal<string | null>(null);
-    const [selectedChatMessages, setSelectedChatMessages] = createSignal<string[]>([]);
 
-    const select_chat = (chatId: string | undefined) => {
-        setParams({ id: chatId });
-        setSelectedChat(chatId || null);
-    };
+    const [message, setMessage] = createSignal<string>("");
+    const [selectedChat, setSelectedChat] = createSignal<Chat | null>(null);
+    const [selectedChatMessages, setSelectedChatMessages] = createSignal<Message[]>([]);
 
-    onMount(() => {
-        select_chat(params.id);
-    })
+    onMount(async () => {
+        let resp = await fetch(
+            "http://127.0.0.1:3000/chats",
+            {
+                method: "GET",
+                headers: {
+                    authorization: `Bearer ${getJwtFromCookies()}`,
+                }
+            }
+        )
+        let retrievedChats: Chat[] = await resp.json();
 
-    createEffect(() => {
-        let chat_id = selectedChat();
-        const chat = chats().find(chat => chat.id === chat_id);
-        setSelectedChatMessages(chat ? [...chat.messages] : []);
+        setChats(retrievedChats);
+
+        setSelectedChat(chats().find((chat) => chat.id === params.id) || null);
     });
+
+    //createEffect(() => {
+    //    let prev_chat = selectedChat();
+    //    const chat = chats().find(chat => chat.id === prev_chat?.id);
+    //    setSelectedChatMessages(chat ? [...chat.messages] : []);
+    //});
 
     const handleSendMessage = () => {
         const currentMessage = message();
         if (currentMessage.trim() !== "") {
             setChats(prev => prev.map(chat => {
-                if (chat.id === selectedChat()) {
+                if (chat.id === selectedChat()?.id) {
+                    let sentMessage: Message = {
+                        senderUsername: "sender",
+                        content: currentMessage,
+                    }
                     return {
                         ...chat,
-                        messages: [...chat.messages, currentMessage],
-                        lastMessage: currentMessage
+                        messages: [...chat.messages, sentMessage],
+                        lastMessage: sentMessage,
                     };
                 }
                 return chat;
@@ -69,14 +58,23 @@ const Conversation = () => {
         }
     };
 
+    const select_chat = (id: string | undefined) => {
+        setParams({ id: id });
+        setSelectedChat(chats().find((chat) => chat.id === id) || null);
+        let chat = selectedChat();
+        setSelectedChatMessages(chat ? [...chat.messages] : []);
+    }
+
     return (
         <div class="h-screen bg-gray-900 text-white flex">
             <ChatNavBar chats={chats} select_chat={select_chat} />
             <ChatConversationComponent
+                chatId={params.id}
                 handleSendMessage={handleSendMessage}
                 setMessage={setMessage}
                 message={message}
                 selectedChatMessages={selectedChatMessages}
+                setSelectedChatMessages={setSelectedChatMessages}
                 selectedChat={selectedChat}
             />
         </div>

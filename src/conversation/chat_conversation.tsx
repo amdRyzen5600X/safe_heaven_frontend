@@ -1,17 +1,41 @@
-import { Show, For, Accessor, Setter } from "solid-js";
+import { Show, For, Accessor, Setter, onMount } from "solid-js";
 import MessageComponent from "../components/message";
+import { Chat, Message } from "../components/chat";
+import { getJwtFromCookies } from "../utils";
 
-const ChatConversationComponent = (props: { selectedChat: Accessor<string | null>, selectedChatMessages: Accessor<string[]>, message: Accessor<string>, setMessage: Setter<string>, handleSendMessage: () => void }) => {
+const ChatConversationComponent = (props: {
+    chatId: string | string[] | undefined,
+    selectedChat: Accessor<Chat | null>,
+    selectedChatMessages: Accessor<Message[]>,
+    setSelectedChatMessages: Setter<Message[]>,
+    message: Accessor<string>,
+    setMessage: Setter<string>,
+    handleSendMessage: () => void
+}) => {
+    onMount(async () => {
+        let resp = await fetch(
+            `http://127.0.0.1:3000/chats/${props.chatId}`,
+            {
+                method: "GET",
+                headers: {
+                    authorization: `Bearer ${getJwtFromCookies()}`,
+                }
+            }
+        )
+        let retrievedChat: Chat = await resp.json();
+        props.setSelectedChatMessages(retrievedChat ? [...retrievedChat.messages] : []);
+    });
+
     return (
         <div class="bg-gray-900 p-4 w-3/4 flex flex-col">
-            <Show when={!!props.selectedChat()} fallback={
+            <Show when={!!props.chatId} fallback={
                 <div>
                     <h1 class="text-2xl font-bold mb-4">Welcome to Messenger</h1>
                     <p class="text-gray-400">Select a chat to start messaging.</p>
                 </div>
             }>
                 <div class="w-full flex h-full overflow-auto flex-col">
-                    <h1 class="text-2xl font-bold mb-4">Chat {props.selectedChat()}</h1>
+                    <h1 class="text-2xl font-bold mb-4">Chat {props.selectedChat()?.name}</h1>
                     <div class="space-y-2 w-full overflow-auto">
                         <For each={props.selectedChatMessages()}>
                             {(message) => (
