@@ -4,7 +4,6 @@ import './index.css'
 import { Route, Router } from '@solidjs/router'
 import { SignInComponent } from './sign_in/index.tsx'
 import { SignUpComponent } from './sign_up/index.tsx'
-import MessengerChooseChat from './messanger_choose_chat/index.tsx'
 import Conversation from './conversation/index.tsx'
 
 const root = document.getElementById('root')

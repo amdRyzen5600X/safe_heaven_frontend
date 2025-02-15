@@ -4,14 +4,13 @@ export interface Message {
     senderUsername: string,
 }
 
-export interface Chat {
+export interface Chats {
     id: string,
     name: string,
     lastMessage?: Message,
-    messages: Message[],
 }
 
-const ChatComponent = (props: { chat: Chat, select_chat: (id: string) => void}) => {
+const ChatComponent = (props: { chat: Chats; select_chat: (id: string) => void }) => {
     return (
         <div
             class="p-4 bg-gray-700 rounded-lg shadow-md cursor-pointer hover:bg-gray-600 transition-colors duration-200"

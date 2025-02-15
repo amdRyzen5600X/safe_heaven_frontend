@@ -3,7 +3,7 @@ import { Button } from "../components/button"
 import { Input } from "../components/input"
 import { getTomorowDate } from "../utils"
 
-type JwtResp = {
+export type JwtResp = {
     access_token: string,
 }
 
@@ -11,10 +11,9 @@ const submitForm = action(async (formData: FormData) => {
     const username = formData.get("username")?.toString() ?? "";
     const password = formData.get("password")?.toString() ?? "";
 
-    //let response = await fetch("http://127.0.0.1:3000/auth/sign-in", { method: "POST", body: JSON.stringify({ username, password }) });
     try {
         let resp: JwtResp = await (await fetch(
-            "http://127.0.0.1:3000/auth/sign-in",
+            `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/auth/sign-in`,
             {
                 method: "POST",
                 body: JSON.stringify({ login: username, password }),

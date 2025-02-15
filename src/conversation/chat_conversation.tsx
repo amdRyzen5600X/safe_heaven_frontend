@@ -1,43 +1,35 @@
-import { Show, For, Accessor, Setter, onMount } from "solid-js";
+import { Show, For, Accessor, Setter, createEffect, createSignal, Resource } from "solid-js";
 import MessageComponent from "../components/message";
-import { Chat, Message } from "../components/chat";
-import { getJwtFromCookies } from "../utils";
+import { Chat } from ".";
 
 const ChatConversationComponent = (props: {
-    chatId: string | string[] | undefined,
-    selectedChat: Accessor<Chat | null>,
-    selectedChatMessages: Accessor<Message[]>,
-    setSelectedChatMessages: Setter<Message[]>,
+    chat: Resource<Chat | undefined>,
     message: Accessor<string>,
     setMessage: Setter<string>,
     handleSendMessage: () => void
 }) => {
-    onMount(async () => {
-        let resp = await fetch(
-            `http://127.0.0.1:3000/chats/${props.chatId}`,
-            {
-                method: "GET",
-                headers: {
-                    authorization: `Bearer ${getJwtFromCookies()}`,
-                }
-            }
-        )
-        let retrievedChat: Chat = await resp.json();
-        props.setSelectedChatMessages(retrievedChat ? [...retrievedChat.messages] : []);
-    });
+    const [ref, setRef] = createSignal<HTMLDivElement>();
+
+    createEffect(() => {
+        if (!!props.chat()?.id) {
+            ref()?.scrollTo({
+                top: ref()?.scrollHeight,
+            })
+        }
+    })
 
     return (
         <div class="bg-gray-900 p-4 w-3/4 flex flex-col">
-            <Show when={!!props.chatId} fallback={
+            <Show when={props.chat()} fallback={
                 <div>
                     <h1 class="text-2xl font-bold mb-4">Welcome to Messenger</h1>
                     <p class="text-gray-400">Select a chat to start messaging.</p>
                 </div>
             }>
                 <div class="w-full flex h-full overflow-auto flex-col">
-                    <h1 class="text-2xl font-bold mb-4">Chat {props.selectedChat()?.name}</h1>
-                    <div class="space-y-2 w-full overflow-auto">
-                        <For each={props.selectedChatMessages()}>
+                    <h1 class="text-2xl font-bold mb-4">Chat {props.chat()?.name}</h1>
+                    <div ref={setRef} class="space-y-2 w-full overflow-auto">
+                        <For each={props.chat()?.messages}>
                             {(message) => (
                                 <MessageComponent message={message} />
                             )}
