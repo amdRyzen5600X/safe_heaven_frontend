@@ -67,7 +67,6 @@ const Conversation = () => {
                 if (prev === undefined) {
                     return undefined;
                 }
-                //console.log(prev);
                 return {
                     ...prev,
                     messages: [...prev.messages, message],
@@ -88,6 +87,16 @@ const Conversation = () => {
                 });
             });
         });
+
+        socket.on("newChat", (chat: Chats) => {
+            mutateChats(prev => {
+                if (prev === undefined) {
+                    return [chat];
+                }
+                return [chat, ...prev];
+            })
+        });
+
         setSocket({ socket });
     });
 
