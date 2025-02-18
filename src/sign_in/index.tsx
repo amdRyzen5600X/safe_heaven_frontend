@@ -13,7 +13,7 @@ const submitForm = action(async (formData: FormData) => {
 
     try {
         let resp: JwtResp = await (await fetch(
-            `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/auth/sign-in`,
+            `https://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/auth/sign-in`,
             {
                 method: "POST",
                 body: JSON.stringify({ login: username, password }),
