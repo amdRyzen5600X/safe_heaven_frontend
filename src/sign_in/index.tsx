@@ -13,14 +13,14 @@ const submitForm = action(async (formData: FormData) => {
 
     try {
         let resp: JwtResp = await (await fetch(
-            `https://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/auth/sign-in`,
+            `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/auth/sign-in`,
             {
                 method: "POST",
                 body: JSON.stringify({ login: username, password }),
                 headers: { "Content-Type": "application/json; charset=utf-8" },
             },
         )).json();
-        document.cookie = `access_token=${resp.access_token}; expires=${getTomorowDate().toUTCString()}; path=/; SameSite=None; Secure`
+        document.cookie = `access_token=${resp.access_token}; expires=${getTomorowDate().toUTCString()}; path=/; SameSite=Strict`
         return redirect("/");
     } catch {
         throw redirect("/sign-in");

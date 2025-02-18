@@ -15,7 +15,7 @@ export interface Chat {
 
 const fetchChats = async (): Promise<Chats[]> => {
     let resp = await fetch(
-        `https://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats`,
+        `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats`,
         {
             method: "GET",
             headers: {
@@ -31,7 +31,7 @@ const fetchChat = async (chatId: any): Promise<Chat | undefined> => {
         return undefined;
     }
     let resp = await fetch(
-        `https://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats/${chatId}`,
+        `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats/${chatId}`,
         {
             method: "GET",
             headers: {
