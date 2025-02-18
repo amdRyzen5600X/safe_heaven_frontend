@@ -116,7 +116,7 @@ const Conversation = () => {
 
     return (
         <div class="h-screen bg-gray-900 text-white flex">
-            <ChatNavBar chats={chats} select_chat={select_chat} />
+            <ChatNavBar chats={chats} select_chat={select_chat} socket={socket}/>
             <ChatConversationComponent
                 chat={chat}
                 handleSendMessage={handleSendMessage}
