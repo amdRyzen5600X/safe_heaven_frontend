@@ -2,11 +2,13 @@
 import { render } from 'solid-js/web'
 import './index.css'
 import { Route, Router } from '@solidjs/router'
-import { SignInComponent } from './sign_in/index.tsx'
-import { SignUpComponent } from './sign_up/index.tsx'
-import Conversation from './conversation/index.tsx'
+import { lazy } from 'solid-js'
 
 const root = document.getElementById('root')
+
+let Conversation = lazy(() => import("./conversation/index.tsx"));
+let SignInComponent = lazy(() => import("./sign_in/index.tsx"));
+let SignUpComponent = lazy(() => import("./sign_up/index.tsx"));
 
 render(
     () => (

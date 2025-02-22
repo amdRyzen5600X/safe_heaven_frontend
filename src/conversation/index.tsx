@@ -1,11 +1,14 @@
 import { createResource, createSignal, onMount } from "solid-js";
-import { useSearchParams } from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import ChatNavBar from "./chat_nav_bar";
 import ChatConversationComponent from "./chat_conversation";
 import { getJwtFromCookies } from "../utils";
 import { Chats, Message } from "../components/chat";
 import { Manager, Socket } from "socket.io-client";
 import { createStore } from "solid-js/store";
+import createAxiosInstance, { env } from "../api";
+import Cookies from "js-cookie";
+import { AxiosResponse } from "axios";
 
 export interface Chat {
     id: string,
@@ -14,32 +17,25 @@ export interface Chat {
 }
 
 const fetchChats = async (): Promise<Chats[]> => {
-    let resp = await fetch(
-        `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats`,
-        {
-            method: "GET",
-            headers: {
-                authorization: `Bearer ${getJwtFromCookies()}`,
-            }
-        }
-    )
-    return resp.json();
+    let client = createAxiosInstance(env.BASE_URL);
+    const navigate = useNavigate();
+    let jwt = Cookies.get("access_token");
+    if (jwt === null) {
+        navigate("/sign-in", { resolve: true })
+        return [];
+    }
+    let resp: AxiosResponse<Chats[]> = await client.get("/chats")
+    return resp.data;
 }
 
 const fetchChat = async (chatId: any): Promise<Chat | undefined> => {
+    let client = createAxiosInstance(env.BASE_URL);
     if (chatId === null) {
         return undefined;
     }
-    let resp = await fetch(
-        `http://${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}/chats/${chatId}`,
-        {
-            method: "GET",
-            headers: {
-                authorization: `Bearer ${getJwtFromCookies()}`,
-            }
-        }
-    )
-    return resp.json();
+    let resp: AxiosResponse<Chat> = await client.get(`/chats/${chatId}`)
+    return resp.data;
+
 }
 
 const Conversation = () => {
@@ -116,7 +112,7 @@ const Conversation = () => {
 
     return (
         <div class="h-screen bg-gray-900 text-white flex">
-            <ChatNavBar chats={chats} select_chat={select_chat} socket={socket}/>
+            <ChatNavBar chats={chats} select_chat={select_chat} socket={socket} />
             <ChatConversationComponent
                 chat={chat}
                 handleSendMessage={handleSendMessage}
