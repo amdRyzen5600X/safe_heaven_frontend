@@ -18,7 +18,7 @@ function SignUpComponent() {
 
         try {
             let client = createAxiosInstance(env.BASE_URL);
-            let response: AxiosResponse<JwtResp> = await client.post("/auth/sign-in", { login: username, password, confirmPassword });
+            let response: AxiosResponse<JwtResp> = await client.post("/auth/sign-up", { login: username, password, confirmPassword });
             if (response.status === 200) {
                 let jwtResp: JwtResp = response.data;
                 Cookies.set("access_token", jwtResp.access_token, { expires: 1, sameSite: "Strict" });

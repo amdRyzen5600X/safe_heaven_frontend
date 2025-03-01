@@ -1,13 +1,19 @@
-export interface Message {
+import { Show } from "solid-js";
+
+export type Message = {
     id?: number,
     content: string,
     senderUsername: string,
 }
 
-export interface Chats {
+export type Chats = {
     id: string,
     name: string,
+    isPending: boolean,
+    isRequestedUser: boolean,
     lastMessage?: Message,
+    publicKey?: string,
+    privateKey?: string,
 }
 
 const ChatComponent = (props: { chat: Chats; select_chat: (id: string) => void }) => {
@@ -17,7 +23,11 @@ const ChatComponent = (props: { chat: Chats; select_chat: (id: string) => void }
             onClick={() => props.select_chat(props.chat.id)}
         >
             <h2 class="text-lg font-semibold">{props.chat.name}</h2>
-            <p class="text-xs text-gray-300">{props.chat.lastMessage?.content}</p>
+            <Show when={props.chat.isPending} fallback={
+                <p class="text-xs text-gray-300">{props.chat.lastMessage?.content}</p>
+            }>
+                <p class="text-xs text-gray-300">{"Pending..."}</p>
+            </Show>
         </div>
     );
 };

@@ -1,15 +1,16 @@
-import { createSignal, For, Resource } from "solid-js";
+import { createSignal, For, Resource, Show } from "solid-js";
 import ChatComponent, { Chats } from "../components/chat";
+import { NewChatPopup } from "../components/newChatPopup";
 import { Socket } from "socket.io-client";
 
 
 const ChatNavBar = (props: {
     chats: Resource<Chats[]>;
     select_chat: (id: string | undefined) => void;
-    socket: {socket? :Socket}
+    socket: { socket?: Socket }
 }) => {
     const [showPopup, setShowPopup] = createSignal(false);
-    const [userId, setUserId] = createSignal("");
+    const [username, setUsername] = createSignal("");
 
     function newChatPopup(_: MouseEvent) {
         setShowPopup(true);
@@ -17,14 +18,14 @@ const ChatNavBar = (props: {
 
     function handleSubmit(e: Event) {
         e.preventDefault();
-        console.log(`created chat with user ${userId()}`)
-        try{
-            props.socket.socket?.emit("createChat", {userId: userId()})
+        console.log(`created chat with user ${username()}`)
+        try {
+            props.socket.socket?.emit("createChat", { username: username() })
         } catch {
-            console.log(`unnable to create chat with user ${userId()}`)
+            console.log(`unnable to create chat with user ${username()}`)
         }
         setShowPopup(false);
-        setUserId("");
+        setUsername("");
     }
 
     return (
@@ -44,38 +45,10 @@ const ChatNavBar = (props: {
                 </For>
             </div>
 
-            {showPopup() && (
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div class="bg-gray-800 p-6 rounded-lg">
-                        <form onSubmit={handleSubmit}>
-                            <label for="userId" class="block text-sm font-medium text-gray-300">User ID</label>
-                            <input
-                                type="text"
-                                id="userId"
-                                value={userId()}
-                                onInput={(e) => setUserId(e.currentTarget.value)}
-                                class="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
-                                required
-                            />
-                            <div class="mt-4 flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPopup(false)}
-                                    class="mr-2 px-4 py-2 bg-gray-600 text-white rounded-md"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    class="px-4 py-2 bg-indigo-600 text-white rounded-md"
-                                >
-                                    Create
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            <Show when={showPopup()}>
+                <NewChatPopup handleSubmit={handleSubmit} username={username} setUsername={setUsername} setShowPopup={setShowPopup} />
+            </Show>
+
         </div>
     );
 };

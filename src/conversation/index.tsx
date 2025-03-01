@@ -10,9 +10,18 @@ import createAxiosInstance, { env } from "../api";
 import Cookies from "js-cookie";
 import { AxiosResponse } from "axios";
 
+export interface ChatStatus {
+    confirmed: boolean,
+    chatId: string,
+    publicKey?: string,
+    privateKey?: string,
+}
+
 export interface Chat {
     id: string,
     name: string,
+    isPending: boolean,
+    isRequestedUser: boolean,
     messages: Message[],
 }
 
@@ -58,40 +67,139 @@ const Conversation = () => {
             }
         );
         let socket = manager.socket("/");
-        socket.on("newMessage", (message: Message) => {
-            mutateChat((prev) => {
-                if (prev === undefined) {
-                    return undefined;
-                }
-                return {
-                    ...prev,
-                    messages: [...prev.messages, message],
-                };
-            })
-            mutateChats(prev => {
-                if (prev === undefined) {
-                    return undefined;
-                }
-                return prev.map(eachChat => {
-                    if (eachChat.id === chat()?.id) {
+        socket.onAny((event: string, body: Message | Chats | ChatStatus) => {
+            if (event.startsWith("newMessage") && "content" in body) {
+                let event_splited = event.split("_");
+                let chat_id = event_splited[event_splited.length - 1];
+                console.log(event_splited);
+                console.log(chat_id);
+                if (params.id === chat_id) {
+                    mutateChat((prev) => {
+                        if (prev === undefined) {
+                            return undefined;
+                        }
                         return {
-                            ...eachChat,
-                            lastMessage: message,
+                            ...prev,
+                            messages: [...prev.messages, body],
                         };
-                    }
-                    return eachChat;
-                });
-            });
-        });
-
-        socket.on("newChat", (chat: Chats) => {
-            mutateChats(prev => {
-                if (prev === undefined) {
-                    return [chat];
+                    })
                 }
-                return [chat, ...prev];
-            })
-        });
+                mutateChats(prev => {
+                    if (prev === undefined) {
+                        return undefined;
+                    }
+                    return prev.map(eachChat => {
+                        if (eachChat.id === chat_id) {
+                            return {
+                                ...eachChat,
+                                lastMessage: body,
+                            };
+                        }
+                        return eachChat;
+                    });
+                });
+            } else if (event === "newChat" && "name" in body) {
+                if (body.publicKey !== undefined && body.privateKey !== undefined) {
+                    let expires = Math.pow(2, 31) - 1;
+                    Cookies.set(`publicKey.${body.id}`, body.publicKey, { expires: expires, sameSite: "Strict" });
+                    Cookies.set(`privateKey.${body.id}`, body.privateKey, { expires: expires, sameSite: "Strict" });
+                }
+                mutateChats(prev => {
+                    if (prev === undefined) {
+                        return [body];
+                    }
+                    return [body, ...prev];
+                })
+            } else if (event === "chatStatus" && "confirmed" in body) {
+                console.log("confirmed");
+                console.log(body.confirmed);
+                if (body.confirmed) {
+                    if (body.publicKey !== undefined && body.privateKey !== undefined) {
+                        let expires = Math.pow(2, 31) - 1;
+                        Cookies.set(`publicKey.${body.chatId}`, body.publicKey, { expires: expires, sameSite: "Strict" });
+                        Cookies.set(`privateKey.${body.chatId}`, body.privateKey, { expires: expires, sameSite: "Strict" });
+                    }
+                    mutateChats(prev => {
+                        if (prev === undefined) {
+                            return undefined;
+                        }
+                        return prev.map((chat) => {
+                            if (chat.id === body.chatId) {
+                                return {
+                                    ...chat,
+                                    isPending: false,
+                                }
+                            }
+                            return chat
+                        });
+                    })
+                    mutateChat(prev => {
+                        if (prev === undefined) {
+                            return prev;
+                        }
+                        if (prev.id === body.chatId) {
+                            return {
+                                ...prev,
+                                isPending: false,
+                            }
+                        }
+                        return prev;
+                    })
+                } else {
+                    Cookies.remove(`publicKey.${body.chatId}`)
+                    Cookies.remove(`privateKey.${body.chatId}`)
+                    mutateChats(prev => {
+                        if (prev === undefined) {
+                            return undefined;
+                        }
+                        return prev.filter((chat) => {
+                            if (chat.id === body.chatId) {
+                                return false;
+                            }
+                            return true;
+                        });
+                    })
+                    mutateChat(_ => {
+                        setParams({ id: null }, { resolve: true })
+                        return undefined;
+                    })
+                }
+            }
+        })
+        //socket.on("newMessage", (message: Message) => {
+        //    mutateChat((prev) => {
+        //        if (prev === undefined) {
+        //            return undefined;
+        //        }
+        //        return {
+        //            ...prev,
+        //            messages: [...prev.messages, message],
+        //        };
+        //    })
+        //    mutateChats(prev => {
+        //        if (prev === undefined) {
+        //            return undefined;
+        //        }
+        //        return prev.map(eachChat => {
+        //            if (eachChat.id === chat()?.id) {
+        //                return {
+        //                    ...eachChat,
+        //                    lastMessage: message,
+        //                };
+        //            }
+        //            return eachChat;
+        //        });
+        //    });
+        //});
+        //
+        //socket.on("newChat", (chat: Chats) => {
+        //    mutateChats(prev => {
+        //        if (prev === undefined) {
+        //            return [chat];
+        //        }
+        //        return [chat, ...prev];
+        //    })
+        //});
 
         setSocket({ socket });
     });
@@ -118,6 +226,7 @@ const Conversation = () => {
                 handleSendMessage={handleSendMessage}
                 setMessage={setMessage}
                 message={message}
+                socket={socket}
             />
         </div>
     );
