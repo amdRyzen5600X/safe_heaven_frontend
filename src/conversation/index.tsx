@@ -60,8 +60,9 @@ const Conversation = () => {
     onMount(async () => {
         // TODO: make a resource from that manager
         let manager = new Manager(
-            `${import.meta.env.VITE_BACKEND_HOST}:${import.meta.env.VITE_BACKEND_PORT}`,
+            `${import.meta.env.VITE_SOCKETIO_HOST}:${import.meta.env.VITE_SOCKETIO_PORT}`,
             {
+                transports: ['websocket', 'webtransport', 'polling'],
                 withCredentials: true,
                 extraHeaders: { "authorization": `Bearer ${getJwtFromCookies()}` }
             }

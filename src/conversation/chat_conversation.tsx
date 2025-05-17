@@ -30,7 +30,7 @@ const ChatConversationComponent = (props: {
                 </div>
             }>
                 <Show when={!props.chat()?.isPending} fallback={
-                    <PendingChat isRequestedUser={props.chat()?.isRequestedUser} username={props.chat()?.name} socket={props.socket} />
+                    <PendingChat isRequestedUser={!props.chat()?.isRequestedUser} username={props.chat()?.name} socket={props.socket} />
                 } >
                     <div class="w-full flex h-full overflow-auto flex-col">
                         <h1 class="text-2xl font-bold mb-4">Chat {props.chat()?.name}</h1>
